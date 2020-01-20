@@ -26,4 +26,18 @@ const router = new VueRouter({
   routes
 })
 
+router.beforeEach((to, from, next) => {
+  // to(将要访问的路径) and from(从哪个路径跳转来的) are both route objects. must call `next`(next()放行，next('/xx')强制跳转).
+  // 如果是登录页面直接放行
+  if (to.path == '/login') {
+    return next();
+  }
+  // 非登录页面要判断token是否存在，不存在跳转到登录页
+  const tokenStr = window.sessionStorage.getItem('token');
+  if (!tokenStr) {
+    return next('/login');
+  }
+  next();
+})
+
 export default router
