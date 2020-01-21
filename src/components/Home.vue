@@ -15,9 +15,10 @@
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <!-- 侧边栏菜单区域 -->
         <el-menu background-color="#333744" text-color="#fff" active-text-color="#ffd04b" 
-        :unique-opened="true" :collapse="isCollapse" :collapse-transition="false">
+        :unique-opened="true" :collapse="isCollapse" :collapse-transition="false" :router="true"
+        :default-active="$route.path">
           <!-- 一级菜单 -->
-          <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
+          <el-submenu :index=" '/' + item.code + ''" v-for="item in menuList" :key="item.id">
             <!-- 一级菜单模板 -->
             <template slot="title">
               <!-- 一级菜单图标 -->
@@ -26,7 +27,8 @@
               <span>{{item.name}}</span>
             </template>
             <!-- 二级菜单 -->
-            <el-menu-item :index="subItem.id + ''" v-for="subItem in item.subMenus" :key="subItem.id">
+            <el-menu-item :index="'/' + subItem.code" v-for="subItem in item.subMenus" :key="subItem.id"
+            >
               <template slot="title">
                 <!-- 菜单图标 -->
                 <i class="el-icon-menu"></i>
@@ -38,7 +40,9 @@
         </el-menu>  
       </el-aside>
       <!-- 右侧内容主体 -->
-      <el-main>Main</el-main>
+      <el-main>
+        <router-view></router-view>
+      </el-main>
     </el-container>
   </el-container>
 </template>
@@ -48,7 +52,8 @@ export default {
   data() {
     return {
       menuList: [],
-      isCollapse: false
+      isCollapse: false,
+      activePath: ''
     }
   },
   created() {
@@ -72,6 +77,7 @@ export default {
     toggleCollapse() {
       this.isCollapse = !this.isCollapse
     }
+   
   }
   
 }
