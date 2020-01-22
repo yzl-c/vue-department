@@ -1,12 +1,13 @@
 <template>
   <div>
-    <!-- 导航 -->
+<!-- 导航 -->
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>系统设置</el-breadcrumb-item>
       <el-breadcrumb-item>用户管理</el-breadcrumb-item>
     </el-breadcrumb>
-    <!-- 内容主体 -->
+
+<!-- 内容主体 -->
     <el-card>
       <!-- 搜索区域 -->
       <el-row :gutter="20">
@@ -16,22 +17,25 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary">添加用户</el-button>
+          <el-button type="primary" @click="dialogVisible = true">添加用户</el-button>
         </el-col>
       </el-row>
     </el-card>
-    <!-- 用户列表 -->
+
+<!-- 用户列表 -->
     <el-table :data="userList">
       <el-table-column type="index"></el-table-column>
       <el-table-column label="账号" prop="account"></el-table-column>
       <el-table-column label="姓名" prop="name"></el-table-column>
       <el-table-column label="角色" prop="role.name"></el-table-column>
       <el-table-column label="操作">
-        <template v-solt="scope">
+        <template slot-scope="scope">
           <!-- 修改按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+            <el-button type="primary" icon="el-icon-edit" size="mini"
+            @click="showEditDialog(scope.row.id)"></el-button>
           <!-- 删除按钮 -->
-          <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini"
+          @click="deleteUserById(scope.row.id)"></el-button>
           <!-- 分配角色按钮 -->
           <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
             <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
@@ -39,7 +43,8 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 分页栏 -->
+
+<!-- 分页栏 -->
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
@@ -49,6 +54,50 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="total">
     </el-pagination>
+
+<!-- 添加用户弹出框 -->
+    <el-dialog title="添加用户" :visible.sync="dialogVisible" width="40%" 
+    @close="addDialogClosed">
+      <!-- 内容 -->
+      <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px" class="demo-ruleForm">
+        <el-form-item label="账号" prop="account">
+          <el-input v-model="addForm.account"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="name">
+          <el-input v-model="addForm.name"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addForm.password"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 底部 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
+    </el-dialog>
+
+<!-- 编辑用户弹出框 -->
+    <el-dialog title="编辑用户" :visible.sync="editDialogVisible" width="40%"
+    @close="editDialogClosed">
+      <!-- 内容 -->
+      <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px" class="demo-ruleForm">
+        <el-form-item label="账号">
+          <el-input v-model="editForm.account" disabled=""></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="name">
+          <el-input v-model="editForm.name"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="editForm.password"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 底部 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUser">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -63,6 +112,68 @@ export default {
       },
       userList: [],
       total: 0,
+      // 添加用户对话框显示状态
+      dialogVisible: false,
+      // 编辑用户对话框显示状态
+      editDialogVisible: false,
+      // 添加表单数据
+      addForm: {
+        account: '',
+        name: '',
+        password: ''
+      },
+      // 编辑用户信息数据
+      editForm: {},
+      // 添加表单验证规则
+      addFormRules: {
+        account: [
+          { required: true, message: '请输入账号', trigger: 'blur' },
+          {
+            min: 5,
+            max: 10,
+            message: '账号的长度在5~10个字符之间',
+            trigger: 'blur'
+          }
+        ],
+        name: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          {
+            min: 3,
+            max: 10,
+            message: '用户名的长度在3~10个字符之间',
+            trigger: 'blur'
+          }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          {
+            min: 5,
+            max: 15,
+            message: '密码的长度在5~15个字符之间',
+            trigger: 'blur'
+          }
+        ]
+      },
+      editFormRules: {
+        name: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          {
+            min: 3,
+            max: 10,
+            message: '用户名的长度在3~10个字符之间',
+            trigger: 'blur'
+          }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          {
+            min: 5,
+            max: 15,
+            message: '密码的长度在5~15个字符之间',
+            trigger: 'blur'
+          }
+        ]
+      }
     }
   },
   created() {
@@ -83,7 +194,6 @@ export default {
       }
       this.userList = res.data.dataList;
       this.total = res.data.total;
-      console.log(res);
     },
     // 监听 pagesize 改变的事件
     handleSizeChange(newSize) {
@@ -94,6 +204,79 @@ export default {
     handleCurrentChange(newPage) {
       this.queryInfo.pageNum = newPage;
       this.getUsersList();
+    },
+    // 添加用户对话框关闭时执行的操作
+    addDialogClosed() {
+      this.$refs.addFormRef.resetFields();
+    },
+    // 编辑用户对话框关闭时执行的操作
+    editDialogClosed() {
+      this.$refs.editFormRef.resetFields();
+    },
+    // 添加用户提交
+    addUser() {
+      // 预校验
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) {
+          return;
+        }
+        const {data : res} = await this.$http.post('/sysUser/create', this.addForm);
+        if (res.meta.status != 200) {
+          return this.$message.error("添加用户失败");
+        }
+        this.dialogVisible = false;
+        this.getUsersList();
+        this.$message.success("添加用户成功");
+      });
+    },
+    // 展示编辑对话框
+    async showEditDialog(id) {
+      const {data : res} = await this.$http.get('/sysUser/getUserById/' + id);
+      if (res.meta.status != 200) {
+        return this.$message.error('获取用户信息失败');
+      }
+      this.editForm = res.data;
+      this.editDialogVisible = true;
+    },
+    // 编辑用户提交
+    editUser() {
+      // 预校验
+      this.$refs.editFormRef.validate(async valid => {
+        if (!valid) {
+          return;
+        }
+        const {data : res} = await this.$http.put('/sysUser/update', this.editForm);
+        if (res.meta.status != 200) {
+          return this.$message.error("更新用户失败");
+        }
+        this.editDialogVisible = false;
+        this.getUsersList();
+        this.$message.success("更新用户成功");
+      });
+    },
+    // 删除用户
+    async deleteUserById(id) {
+      const confirmSelect = await this.$confirm(
+        '此操作将删除该用户，是否继续？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).catch(error => error);
+
+      if (confirmSelect != 'confirm') {
+        return this.$message.info('取消删除操作');
+      }
+
+      const {data : res} = await this.$http.delete('/sysUser/logicDelete/' + id);
+      if (res.meta.status != 200) {
+        return this.$message.error('删除失败');
+      }
+      this.$message.success('删除成功');
+      this.getUsersList();
+
     }
   }
 }
