@@ -26,6 +26,13 @@
       <el-table-column type="index"></el-table-column>
       <el-table-column label="权限编码" prop="code"></el-table-column>
       <el-table-column label="权限名称" prop="name"></el-table-column>
+      <el-table-column label="权限级别" prop="level">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.level === 0" type="info">LEVEL 1</el-tag>
+          <el-tag v-else-if="scope.row.level === 1" type="success">LEVEL 2</el-tag>
+          <el-tag v-else type="warning">LEVEL 3</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <!-- 修改按钮 -->
