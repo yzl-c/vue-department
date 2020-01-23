@@ -3,8 +3,8 @@
 <!-- 导航 -->
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>系统设置</el-breadcrumb-item>
       <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
     </el-breadcrumb>
 
 <!-- 内容主体 -->
@@ -24,7 +24,7 @@
 
 <!-- 用户列表 -->
     <el-table :data="userList">
-      <el-table-column type="index"></el-table-column>
+      <el-table-column label="#" type="index"></el-table-column>
       <el-table-column label="账号" prop="account"></el-table-column>
       <el-table-column label="姓名" prop="name"></el-table-column>
       <el-table-column label="角色" prop="role.name"></el-table-column>
@@ -270,7 +270,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysUser/logicDelete/' + id);
+      const {data : res} = await this.$http.delete('/sysUser/logicDeleteById/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
