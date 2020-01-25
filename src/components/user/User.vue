@@ -83,7 +83,7 @@
       <!-- 内容 -->
       <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px" class="demo-ruleForm">
         <el-form-item label="账号">
-          <el-input v-model="editForm.account" disabled=""></el-input>
+          <el-input v-model="editForm.account" disabled></el-input>
         </el-form-item>
         <el-form-item label="用户名" prop="name">
           <el-input v-model="editForm.name"></el-input>
