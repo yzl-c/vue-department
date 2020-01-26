@@ -229,7 +229,7 @@ export default {
         this.$message.success("更新权限成功");
       });
     },
-    // 删除用户
+    // 删除权限
     async deletePermissionById(id) {
       const confirmSelect = await this.$confirm(
         '此操作将删除该权限，是否继续？',

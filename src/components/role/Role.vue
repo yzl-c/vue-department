@@ -28,20 +28,23 @@
         <template slot-scope="scope">
           <el-row :class="['vcenter', 'rowbottom', index1 == 0 ? 'rowtop' : '', '']" v-for="(item1, index1) in scope.row.permissions" :key="'item1' + item1.id">
             <el-col :span="6">
-              <el-tag closable @close="deletePermissionById(scope.row, item1.id)">{{item1.name}}</el-tag>
+              <el-tag >{{item1.name}}</el-tag>
+              <!-- closable @close="deletePermissionById(scope.row, item1.id)" -->
               <i class="el-icon-caret-right"></i>
             </el-col>
             <el-col :span="18">
               <el-row :class="['vcenter', index2 == 0 ? '' : 'rowtop']" v-for="(item2, index2) in item1.subPermissions" :key="item1.code + item2.id">
                 <el-col :span="8">
-                  <el-tag type="success" closable @close="deletePermissionById(scope.row, item2.id)">{{item2.name}}</el-tag>
+                  <el-tag type="success" >{{item2.name}}</el-tag>
+                  <!-- closable @close="deletePermissionById(scope.row, item2.id)" -->
                   <i class="el-icon-caret-right"></i>
                 </el-col>
                 <el-col :span="16">
                   <el-tag type="warning" v-for="(item3) in item2.subPermissions" 
-                  :key="item2.code + item3.id" closable @close="deletePermissionById(scope.row, item3.id)">
+                  :key="item2.code + item3.id">
                     {{item3.name}}
                   </el-tag>
+                  <!--  closable @close="deletePermissionById(scope.row, item3.id)" -->
                 </el-col>
               </el-row>
             </el-col>
@@ -122,11 +125,11 @@
       <!-- 内容 -->
       <el-tree :data="permissionsList" :props="permissionTreeProps"
       show-checkbox node-key="id" default-expand-all
-      :default-checked-keys="defaultKeys"></el-tree>
+      :default-checked-keys="defaultKeys" ref="treeRef"></el-tree>
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="setPermissionDialogVisible = false">取 消</el-button>
-        <el-button type="primary" >确 定</el-button>
+        <el-button type="primary" @click="setPermissions">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -190,7 +193,9 @@ export default {
         children: 'subPermissions'
       },
       // 权限树默认勾选id数组
-      defaultKeys: []
+      defaultKeys: [],
+      // 要分配权限的角色id
+      roleId: -1
     }
   },
   created() {
@@ -238,29 +243,29 @@ export default {
     },
     
     // 解除角色绑定的权限
-    async deletePermissionById(role, permissionId) {
-      const confirmSelect = await this.$confirm(
-        '此操作将解除该权限绑定，是否继续？', 
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).catch (error => error);
-      if (confirmSelect != 'confirm') {
-        return this.$message.info('取消删除权限操作');
-      }
-      this.$message.info('确认删除');
+    // async deletePermissionById(role, permissionId) {
+    //   const confirmSelect = await this.$confirm(
+    //     '此操作将解除该权限绑定，是否继续？', 
+    //     '提示',
+    //     {
+    //       confirmButtonText: '确定',
+    //       cancelButtonText: '取消',
+    //       type: 'warning'
+    //     }
+    //   ).catch (error => error);
+    //   if (confirmSelect != 'confirm') {
+    //     return this.$message.info('取消删除权限操作');
+    //   }
+    //   this.$message.info('确认删除');
 
-      const {data : res} = await this.$http.delete(`/sysRolePermission/deleteRelativeById/${role.id}/${permissionId}`);
+    //   const {data : res} = await this.$http.delete(`/sysRolePermission/deleteRelativeById/${role.id}/${permissionId}`);
 
-      if (res.meta.status != 200) {
-        return this.$message.error('解除权限失败');
-      }
+    //   if (res.meta.status != 200) {
+    //     return this.$message.error('解除权限失败');
+    //   }
 
-      role.permissions = res.data;
-    },
+    //   role.permissions = res.data;
+    // },
 
     // 添加角色提交
     addRole() {
@@ -333,6 +338,7 @@ export default {
 
     // 展示权限配置弹出框
     async showSetPermissionDialog(role) {
+      this.roleId = role.id;
       const {data : res} = await this.$http.get('/sysPermission/getAllPermissionsTree');
       if (res.meta.status != 200) {
         return this.$message.error('获取权限列表失败');
@@ -340,8 +346,6 @@ export default {
       this.permissionsList = res.data;
       // 设置当前角色权限树默认勾选数组的值
       role.permissions.forEach(item => this.getLeafKeys(item, this.defaultKeys));
-      console.log(role.permissions)
-      console.log(this.defaultKeys)
       // 展示权限配置弹出框
       this.setPermissionDialogVisible = true;
     },
@@ -359,6 +363,28 @@ export default {
     // 权限配置框关闭事件
     setPermissionDialogClosed() {
       this.defaultKeys = [];
+    },
+
+    // 设置勾选中的权限节点
+    async setPermissions() {
+      // 勾选状态节点
+      const a = this.$refs.treeRef.getCheckedKeys();
+      // 半勾选状态节点
+      const b = this.$refs.treeRef.getHalfCheckedKeys();
+      const keys = [...a, ...b];
+      const ids = keys.join(',');
+      const {data : res} = await this.$http.post('/sysRolePermission/setRelative',{
+        roleId: this.roleId,
+        permissionIds: ids
+      });
+
+      if (res.meta.status != 200) {
+        return this.$message.error('权限分配失败');
+      }
+
+      this.$message.success('权限分配成功');
+      this.getRolesList();
+      this.setPermissionDialogVisible = false;
     }
   }
 }
