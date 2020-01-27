@@ -22,7 +22,7 @@
       </el-row>
     </el-card>
 
-
+<!-- 内容列表 -->
     <el-table :data="dictypesList" border stripe row-key="code"
     :tree-props="{children: 'dictionarys'}">
       <el-table-column label="类别/字典">
@@ -31,9 +31,9 @@
           <el-tag v-else type="success">字典</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="编码" prop="code"></el-table-column>
-      <el-table-column label="名称" prop="name"></el-table-column>
-      <el-table-column label="操作">
+      <el-table-column align="center" label="编码" prop="code"></el-table-column>
+      <el-table-column align="center" label="名称" prop="name"></el-table-column>
+      <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <!-- 添加字典按钮,为字典类型的行才有此按钮 -->
           <el-tooltip effect="dark" content="添加字典" placement="top" :enterable="false">

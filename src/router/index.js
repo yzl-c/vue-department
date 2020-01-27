@@ -7,6 +7,7 @@ import User from '../components/user/User.vue'
 import Permission from '../components/permission/Permission.vue'
 import Role from '../components/role/Role.vue'
 import Dictionary from '../components/dictionary/Dictionary.vue'
+import Menu from '../components/menu/Menu.vue'
 
 Vue.use(VueRouter)
 
@@ -43,6 +44,10 @@ const routes = [
       {
         path: '/dictionary_list',
         component: Dictionary
+      },
+      {
+        path: '/menu_list',
+        component: Menu
       }
     ]
   }
