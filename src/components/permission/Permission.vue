@@ -174,12 +174,12 @@ export default {
     // 监听 pagesize 改变的事件
     handleSizeChange(newSize) {
       this.queryInfo.pageSize = newSize;
-      this.getUsersList();
+      this.getPermissionsList();
     },
     // 监听 页码值 改变的事件
     handleCurrentChange(newPage) {
       this.queryInfo.pageNum = newPage;
-      this.getUsersList();
+      this.getPermissionsList();
     },
     // 添加用户对话框关闭时执行的操作
     addDialogClosed() {

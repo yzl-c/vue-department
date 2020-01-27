@@ -100,8 +100,7 @@
     </el-dialog>
 
 <!-- 分配角色对话框 -->
-    <el-dialog title="提示" :visible.sync="setRoleDialogVisible" width="40%"
-    >
+    <el-dialog title="提示" :visible.sync="setRoleDialogVisible" width="40%">
       <div>
         <p>用户账号：{{userInfo.account}}</p>
         <p>当前角色：{{userInfo.role ? userInfo.role.name : ''}}</p>

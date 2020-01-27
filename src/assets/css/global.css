@@ -16,3 +16,7 @@ body,
 .el-pagination {
   margin-top: 15px;
 }
+
+.el-table .cell{
+  text-align: center;
+}
