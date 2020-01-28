@@ -67,6 +67,20 @@
         <el-form-item label="名称" prop="name">
           <el-input v-model="addForm.name"></el-input>
         </el-form-item>
+        <el-form-item label="等级">
+          <el-select v-model="selectedLevel" placeholder="请选择"  @change="changeLevel">
+            <el-option v-for="item in levelsList" :key="item.code"
+              :label="item.name" :value="item.code">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="父权限">
+          <el-select v-model="selectedParentPermission" placeholder="请选择">
+            <el-option v-for="item in selectPermissions" :key="item.id"
+              :label="item.name" :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
@@ -100,6 +114,20 @@
 export default {
   data() {
     return {
+      levelsList: [{
+        code: 0,
+        name: 'LEVEL 1'
+      },{
+        code: 1,
+        name: 'LEVEL 2'
+      },{
+        code: 2,
+        name: 'LEVEL 3'
+      }],
+      selectedLevel: '',
+      selectPermissions: [],
+      selectedParentPermission: '',
+
       permissionsList: [],
       queryInfo: {
         code: '',
@@ -115,6 +143,8 @@ export default {
       addForm: {
         code: '',
         name: '',
+        level: 0,
+        parentId : 0
       },
       // 编辑表单数据
       editForm: {},
@@ -124,8 +154,8 @@ export default {
           { required: true, message: '请输入编码', trigger: 'blur' },
           {
             min: 3,
-            max: 15,
-            message: '编码的长度在3~15个字符之间',
+            max: 30,
+            message: '编码的长度在3~30个字符之间',
             trigger: 'blur'
           }
         ],
@@ -184,6 +214,8 @@ export default {
     // 添加用户对话框关闭时执行的操作
     addDialogClosed() {
       this.$refs.addFormRef.resetFields();
+      this.selectedLevel = '';
+      this.selectedParentPermission = '';
     },
     // 编辑用户对话框关闭时执行的操作
     editDialogClosed() {
@@ -204,11 +236,15 @@ export default {
         if (!valid) {
           return;
         }
+        this.addForm.parentId = this.selectedParentPermission;
+        this.addForm.level = this.selectedLevel;
         const {data : res} = await this.$http.post('/sysPermission/create', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加权限失败");
         }
         this.dialogVisible = false;
+        this.selectedLevel = '';
+        this.selectedParentPermission = '';
         this.getPermissionsList();
         this.$message.success("添加权限成功");
       });
@@ -251,8 +287,27 @@ export default {
       }
       this.$message.success('删除成功');
       this.getPermissionsList();
+    },
+    // 新增权限时权限等级改变事件
+    async changeLevel(level) {
+      if (level == 0) {
+        this.selectPermissions = [{
+          id: 0,
+          name: '根权限'
+        }];
+        this.selectedParentPermission = '';
+        return;
+      }
+      this.selectedParentPermission = '';
+      const {data : res} = await this.$http.get('/sysPermission/getPermissionsByLevel/' + (level - 1));
+      if (res.meta.status != 200) {
+        return this.$message.error("获取权限失败");
+      }
+      this.selectPermissions = res.data;
 
     }
+    
+
   }
 }
 </script>

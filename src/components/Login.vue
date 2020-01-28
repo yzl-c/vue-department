@@ -66,6 +66,7 @@ export default {
         this.$message.success('登录成功');
         // 1. 将登录成功之后的 token，保存到客户端的 sessionStorage 中
         window.sessionStorage.setItem('token', res.data.token);
+        window.sessionStorage.setItem('loginUser', res.data.loginUser);
         // 2. 通过编程式导航跳转到后台主页，路由地址是 /home
         this.$router.push('/home');
       })

@@ -67,6 +67,11 @@
             <el-button type="warning" icon="el-icon-setting" size="mini"
             @click="showSetPermissionDialog(scope.row)"></el-button>
           </el-tooltip>
+          <!-- 分配菜单按钮 -->
+          <el-tooltip effect="dark" content="菜单配置" placement="top" :enterable="false">
+            <el-button type="success" icon="el-icon-setting" size="mini"
+            @click="showSetMenuDialog(scope.row)"></el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -125,11 +130,25 @@
       <!-- 内容 -->
       <el-tree :data="permissionsList" :props="permissionTreeProps"
       show-checkbox node-key="id" default-expand-all
-      :default-checked-keys="defaultKeys" ref="treeRef"></el-tree>
+      :default-checked-keys="defaultPermissionKeys" ref="permissionTreeRef"></el-tree>
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="setPermissionDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="setPermissions">确 定</el-button>
+      </span>
+    </el-dialog>
+
+<!-- 菜单配置弹出框 -->
+    <el-dialog title="菜单配置" :visible.sync="setMenuDialogVisible" width="50%"
+    @close="setMenuDialogClosed">
+      <!-- 内容 -->
+      <el-tree :data="menusList" :props="menuTreeProps"
+      show-checkbox node-key="id" default-expand-all
+      :default-checked-keys="defaultMenuKeys" ref="menuTreeRef"></el-tree>
+      <!-- 底部 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="setMenuDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="setMenus">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -148,6 +167,7 @@ export default {
       addDialogVisible: false,
       editDialogVisible: false,
       setPermissionDialogVisible: false,
+      setMenuDialogVisible: false,
       rolesList: [],
       addForm: {
         code: '',
@@ -193,8 +213,17 @@ export default {
         children: 'subPermissions'
       },
       // 权限树默认勾选id数组
-      defaultKeys: [],
-      // 要分配权限的角色id
+      defaultPermissionKeys: [],
+      // 所有菜单（树结构）
+      menusList: [],
+      // 菜单树属性
+      menuTreeProps: {
+        label: 'name',
+        children: 'subMenus'
+      },
+      // 菜单树默认勾选id数组
+      defaultMenuKeys: [],
+      // 要配置的角色id
       roleId: -1
     }
   },
@@ -345,32 +374,32 @@ export default {
       }
       this.permissionsList = res.data;
       // 设置当前角色权限树默认勾选数组的值
-      role.permissions.forEach(item => this.getLeafKeys(item, this.defaultKeys));
+      role.permissions.forEach(item => this.getPermissionLeafKeys(item, this.defaultPermissionKeys));
       // 展示权限配置弹出框
       this.setPermissionDialogVisible = true;
     },
 
-    // 获取角色所有最底层权限，保存到权限树默认勾选id数组 defaultKeys
-    getLeafKeys(permission, keys) {
+    // 获取角色所有最底层权限，保存到权限树默认勾选id数组 defaultPermissionKeys
+    getPermissionLeafKeys(permission, keys) {
       // 直到为最底层权限时添加到数组中
       if (!permission.subPermissions || permission.subPermissions.length == 0) {
         return keys.push(permission.id);
       }
       // 否则继续遍历子权限
-      permission.subPermissions.forEach(item => this.getLeafKeys(item, keys));
+      permission.subPermissions.forEach(item => this.getPermissionLeafKeys(item, keys));
     },
 
     // 权限配置框关闭事件
     setPermissionDialogClosed() {
-      this.defaultKeys = [];
+      this.defaultPermissionKeys = [];
     },
 
     // 设置勾选中的权限节点
     async setPermissions() {
       // 勾选状态节点
-      const a = this.$refs.treeRef.getCheckedKeys();
+      const a = this.$refs.permissionTreeRef.getCheckedKeys();
       // 半勾选状态节点
-      const b = this.$refs.treeRef.getHalfCheckedKeys();
+      const b = this.$refs.permissionTreeRef.getHalfCheckedKeys();
       const keys = [...a, ...b];
       const ids = keys.join(',');
       const {data : res} = await this.$http.post('/sysRolePermission/setRelative',{
@@ -385,7 +414,60 @@ export default {
       this.$message.success('权限分配成功');
       this.getRolesList();
       this.setPermissionDialogVisible = false;
-    }
+    },
+
+    // 展示菜单配置弹出框
+    async showSetMenuDialog(role) {
+      this.roleId = role.id;
+      const {data : res} = await this.$http.get('/sysMenu/getAllMenus');
+      if (res.meta.status != 200) {
+        return this.$message.error('获取菜单列表失败');
+      }
+      this.menusList = res.data;
+      // 设置当前角色菜单树默认勾选数组的值
+      role.menus.forEach(item => this.getMenuLeafKeys(item, this.defaultMenuKeys));
+      // 展示菜单配置弹出框
+      this.setMenuDialogVisible = true;
+    },
+
+    // 获取角色所有最底层菜单，保存到菜单树默认勾选id数组 defaultMenuKeys
+    getMenuLeafKeys(menu, keys) {
+      // 直到为最底层菜单时添加到数组中
+      if (!menu.subMenus || menu.subMenus.length == 0) {
+        return keys.push(menu.id);
+      }
+      // 否则继续遍历子权限
+      menu.subMenus.forEach(item => this.getMenuLeafKeys(item, keys));
+    },
+
+    // 菜单配置框关闭事件
+    setMenuDialogClosed() {
+      this.defaultMenuKeys = [];
+    },
+
+    // 设置勾选中的权限节点
+    async setMenus() {
+      // 勾选状态节点
+      const a = this.$refs.menuTreeRef.getCheckedKeys();
+      // 半勾选状态节点
+      const b = this.$refs.menuTreeRef.getHalfCheckedKeys();
+      const keys = [...a, ...b];
+      const ids = keys.join(',');
+      const {data : res} = await this.$http.post('/sysRoleMenu/setRelative',{
+        roleId: this.roleId,
+        menuIds: ids
+      });
+
+      if (res.meta.status != 200) {
+        return this.$message.error('菜单配置失败');
+      }
+
+      this.$message.success('菜单配置成功成功');
+      this.getRolesList();
+      this.setMenuDialogVisible = false;
+    },
+
+
   }
 }
 </script>
