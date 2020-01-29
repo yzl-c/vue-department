@@ -113,6 +113,20 @@
 <script>
 export default {
   data() {
+    // 验证code的唯一性
+    let checkCode = async (rule, value, cb) => {
+      const {data : res} = await this.$http.get('/sysPermission/checkCodeUnique/' + value);
+
+      if (res.meta.status != 200) {
+        return cb(new Error('请求校验失败'));
+      }
+      if (res.data.length == 0) {
+        return cb();
+      }
+
+      cb(new Error('该编码已被使用'));
+    }
+
     return {
       levelsList: [{
         code: 0,
@@ -157,7 +171,8 @@ export default {
             max: 30,
             message: '编码的长度在3~30个字符之间',
             trigger: 'blur'
-          }
+          },
+          { validator: checkCode, trigger: 'blur' }
         ],
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' },
@@ -235,6 +250,9 @@ export default {
       this.$refs.addFormRef.validate(async valid => {
         if (!valid) {
           return;
+        }
+        if (!this.selectedParentPermission) {
+          return this.$message.warning('请选择父菜单');
         }
         this.addForm.parentId = this.selectedParentPermission;
         this.addForm.level = this.selectedLevel;

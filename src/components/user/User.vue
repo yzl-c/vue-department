@@ -123,6 +123,20 @@
 <script>
 export default {
   data() {
+// 验证code的唯一性
+    let checkAccount = async (rule, value, cb) => {
+      const {data : res} = await this.$http.get('/sysUser/checkAccountUnique/' + value);
+
+      if (res.meta.status != 200) {
+        return cb(new Error('请求校验失败'));
+      }
+      if (res.data.length == 0) {
+        return cb();
+      }
+
+      cb(new Error('该账号已被使用'));
+    }
+
     return {
       queryInfo: {
         account: '',
@@ -160,7 +174,8 @@ export default {
             max: 10,
             message: '账号的长度在5~10个字符之间',
             trigger: 'blur'
-          }
+          },
+          { validator: checkAccount, trigger: 'blur' }
         ],
         name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },

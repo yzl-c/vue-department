@@ -88,7 +88,7 @@
     </el-pagination>
 
 <!-- 添加角色弹出框 -->
-    <el-dialog title="添加角色" :visible.sync="addDialogVisible" width="50%">
+    <el-dialog title="添加角色" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <!-- 内容 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="80px" class="demo-ruleForm">
         <el-form-item label="角色编码" prop="code">
@@ -157,6 +157,20 @@
 <script>
 export default {
   data() {
+// 验证code的唯一性
+    let checkCode = async (rule, value, cb) => {
+      const {data : res} = await this.$http.get('/sysRole/checkCodeUnique/' + value);
+
+      if (res.meta.status != 200) {
+        return cb(new Error('请求校验失败'));
+      }
+      if (res.data.length == 0) {
+        return cb();
+      }
+
+      cb(new Error('该编码已被使用'));
+    }
+
     return {
       queryInfo: {
         code: '',
@@ -182,7 +196,8 @@ export default {
             max: 10,
             message: '账号的长度在4~10个字符之间',
             trigger: 'blur'
-          }
+          },
+          { validator: checkCode, trigger: 'blur' }
         ],
         name: [
           { required: true, message: '请输入角色名称', trigger: 'blur' },

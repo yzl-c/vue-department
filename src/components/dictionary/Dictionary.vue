@@ -17,7 +17,7 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="addTypeDialogVisible = true">添加字典</el-button>
+          <el-button type="primary" @click="addTypeDialogVisible = true">添加字典类型</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -66,7 +66,7 @@
     <el-dialog title="添加字典类型" :visible.sync="addTypeDialogVisible" width="40%" 
     @close="addTypeDialogClosed">
       <!-- 内容 -->
-      <el-form :model="addForm" :rules="addFormRules" ref="addTypeFormRef" label-width="70px" class="demo-ruleForm">
+      <el-form :model="addForm" :rules="addTypeFormRules" ref="addTypeFormRef" label-width="70px" class="demo-ruleForm">
         <el-form-item label="编码" prop="code">
           <el-input v-model="addForm.code"></el-input>
         </el-form-item>
@@ -84,7 +84,7 @@
     <el-dialog title="添加字典" :visible.sync="addDictionaryDialogVisible" width="40%" 
     @close="addDictionaryDialogClosed">
       <!-- 内容 -->
-      <el-form :model="addForm" :rules="addFormRules" ref="addDictionaryFormRef" label-width="70px" class="demo-ruleForm">
+      <el-form :model="addForm" :rules="addDictionaryFormRules" ref="addDictionaryFormRef" label-width="70px" class="demo-ruleForm">
         <el-form-item label="编码" prop="code">
           <el-input v-model="addForm.code"></el-input>
         </el-form-item>
@@ -141,6 +141,33 @@
 <script>
 export default {
   data() {
+// 验证code的唯一性
+    let checkTypeCode = async (rule, value, cb) => {
+      const {data : res} = await this.$http.get('/sysDictype/checkCodeUnique/' + value);
+
+      if (res.meta.status != 200) {
+        return cb(new Error('请求校验失败'));
+      }
+      if (res.data.length == 0) {
+        return cb();
+      }
+
+      cb(new Error('该类型编码已被使用'));
+    }
+// 验证code的唯一性
+    let checkDictionaryCode = async (rule, value, cb) => {
+      const {data : res} = await this.$http.get('/sysDictionary/checkCodeUnique/' + value);
+
+      if (res.meta.status != 200) {
+        return cb(new Error('请求校验失败'));
+      }
+      if (res.data.length == 0) {
+        return cb();
+      }
+
+      cb(new Error('该字典编码已被使用'));
+    }
+
     return {
       dictypesList: [],
       queryInfo: {
@@ -165,8 +192,8 @@ export default {
       },
       // 编辑表单数据
       editForm: {},
-      // 添加表单验证规则
-      addFormRules: {
+      // 添加类型表单验证规则
+      addTypeFormRules: {
         code: [
           { required: true, message: '请输入编码', trigger: 'blur' },
           {
@@ -174,7 +201,30 @@ export default {
             max: 20,
             message: '编码的长度在3~20个字符之间',
             trigger: 'blur'
+          },
+          { validator: checkTypeCode, trigger: 'blur' }
+        ],
+        name: [
+          { required: true, message: '请输入名称', trigger: 'blur' },
+          {
+            min: 3,
+            max: 10,
+            message: '名称的长度在3~10个字符之间',
+            trigger: 'blur'
           }
+        ]
+      },
+      // 添加字典表单验证规则
+      addDictionaryFormRules: {
+        code: [
+          { required: true, message: '请输入编码', trigger: 'blur' },
+          {
+            min: 3,
+            max: 20,
+            message: '编码的长度在3~20个字符之间',
+            trigger: 'blur'
+          },
+          { validator: checkDictionaryCode, trigger: 'blur' }
         ],
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' },
