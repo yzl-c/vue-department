@@ -12,7 +12,7 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.account" clearable @clear = "getUsersList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getUsersList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
@@ -125,12 +125,16 @@ export default {
   data() {
 // 验证code的唯一性
     let checkAccount = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysUser/checkAccountUnique/' + value);
+      const {data : res} = await this.$http.get('/user', {
+        params: {
+          account: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -140,6 +144,7 @@ export default {
     return {
       queryInfo: {
         account: '',
+        name: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -228,7 +233,7 @@ export default {
       this.getUsersList();
     },
     async getUsersList() {
-      const { data : res } = await this.$http.get('/sysUser/getUsers', {
+      const { data : res } = await this.$http.get('/user', {
         params: this.queryInfo
       });
       if (res.meta.status !== 200) {
@@ -262,7 +267,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/sysUser/create', this.addForm);
+        const {data : res} = await this.$http.post('/user', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加用户失败");
         }
@@ -273,7 +278,7 @@ export default {
     },
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/sysUser/getUserById/' + id);
+      const {data : res} = await this.$http.get('/user/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('获取用户信息失败');
       }
@@ -287,7 +292,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysUser/update', this.editForm);
+        const {data : res} = await this.$http.put('/user', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新用户失败");
         }
@@ -312,7 +317,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysUser/logicDeleteById/' + id);
+      const {data : res} = await this.$http.delete('/user/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
@@ -325,7 +330,7 @@ export default {
       console.log(this.userInfo)
       this.userInfo = userInfo;
       this.selectedRoleId = '';
-      const {data : res} = await this.$http.get('/sysRole/getRolesList');
+      const {data : res} = await this.$http.get('/role');
       if (res.meta.status != 200) {
         return this.$message.error('获取角色列表失败');
       }

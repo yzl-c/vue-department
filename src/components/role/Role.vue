@@ -12,7 +12,7 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.code" clearable @clear = "getRolesList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getRolesList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
@@ -159,12 +159,16 @@ export default {
   data() {
 // 验证code的唯一性
     let checkCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysRole/checkCodeUnique/' + value);
+      const {data : res} = await this.$http.get('/role', {
+        params: {
+          code: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -174,6 +178,7 @@ export default {
     return {
       queryInfo: {
         code: '',
+        name: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -276,7 +281,7 @@ export default {
 
     // 获取角色列表
     async getRolesList() {
-      const {data : res} = await this.$http.get('/sysRole/getRolesList', {
+      const {data : res} = await this.$http.get('/role', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
@@ -318,7 +323,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/sysRole/create', this.addForm);
+        const {data : res} = await this.$http.post('/role', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加角色失败");
         }
@@ -330,7 +335,7 @@ export default {
 
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/sysRole/getRoleById/' + id);
+      const {data : res} = await this.$http.get('/role/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('获取角色信息失败');
       }
@@ -345,7 +350,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysRole/update', this.editForm);
+        const {data : res} = await this.$http.put('/role', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新角色失败");
         }
@@ -371,7 +376,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysRole/logicDeleteById/' + id);
+      const {data : res} = await this.$http.delete('/role/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
@@ -383,7 +388,7 @@ export default {
     // 展示权限配置弹出框
     async showSetPermissionDialog(role) {
       this.roleId = role.id;
-      const {data : res} = await this.$http.get('/sysPermission/getAllPermissionsTree');
+      const {data : res} = await this.$http.get('/permission/all');
       if (res.meta.status != 200) {
         return this.$message.error('获取权限列表失败');
       }
@@ -434,7 +439,7 @@ export default {
     // 展示菜单配置弹出框
     async showSetMenuDialog(role) {
       this.roleId = role.id;
-      const {data : res} = await this.$http.get('/sysMenu/getAllMenus');
+      const {data : res} = await this.$http.get('/menu/all');
       if (res.meta.status != 200) {
         return this.$message.error('获取菜单列表失败');
       }

@@ -12,7 +12,7 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.code" clearable @clear = "getPermissionsList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getPermissionsList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
@@ -28,8 +28,8 @@
       <el-table-column label="权限名称" prop="name"></el-table-column>
       <el-table-column label="权限级别" prop="level">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.level === 0" type="info">LEVEL 1</el-tag>
-          <el-tag v-else-if="scope.row.level === 1" type="success">LEVEL 2</el-tag>
+          <el-tag v-if="scope.row.level === 1" type="info">LEVEL 1</el-tag>
+          <el-tag v-else-if="scope.row.level === 2" type="success">LEVEL 2</el-tag>
           <el-tag v-else type="warning">LEVEL 3</el-tag>
         </template>
       </el-table-column>
@@ -115,12 +115,16 @@ export default {
   data() {
     // 验证code的唯一性
     let checkCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysPermission/checkCodeUnique/' + value);
+      const {data : res} = await this.$http.get('/permission', {
+        params: {
+          code: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -129,13 +133,13 @@ export default {
 
     return {
       levelsList: [{
-        code: 0,
+        code: 1,
         name: 'LEVEL 1'
       },{
-        code: 1,
+        code: 2,
         name: 'LEVEL 2'
       },{
-        code: 2,
+        code: 3,
         name: 'LEVEL 3'
       }],
       selectedLevel: '',
@@ -145,6 +149,7 @@ export default {
       permissionsList: [],
       queryInfo: {
         code: '',
+        name: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -207,7 +212,7 @@ export default {
       this.getPermissionsList();
     },
     async getPermissionsList() {
-      const {data : res} = await this.$http.get('/sysPermission/getPermissionsList', {
+      const {data : res} = await this.$http.get('/permission', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
@@ -238,7 +243,7 @@ export default {
     },
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/sysPermission/getPermissionById/' + id);
+      const {data : res} = await this.$http.get('/permission/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('获取用户信息失败');
       }
@@ -251,12 +256,13 @@ export default {
         if (!valid) {
           return;
         }
-        if (!this.selectedParentPermission) {
-          return this.$message.warning('请选择父菜单');
+        console.log(this.selectedParentPermission)
+        if (!this.selectedParentPermission && this.selectedParentPermission != 0) {
+          return this.$message.warning('请选择父权限');
         }
         this.addForm.parentId = this.selectedParentPermission;
         this.addForm.level = this.selectedLevel;
-        const {data : res} = await this.$http.post('/sysPermission/create', this.addForm);
+        const {data : res} = await this.$http.post('/permission', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加权限失败");
         }
@@ -274,7 +280,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysPermission/update', this.editForm);
+        const {data : res} = await this.$http.put('/permission', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新权限失败");
         }
@@ -299,7 +305,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysPermission/logicDeleteById/' + id);
+      const {data : res} = await this.$http.delete('permission/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
@@ -308,7 +314,7 @@ export default {
     },
     // 新增权限时权限等级改变事件
     async changeLevel(level) {
-      if (level == 0) {
+      if (level == 1) {
         this.selectPermissions = [{
           id: 0,
           name: '根权限'
@@ -317,11 +323,15 @@ export default {
         return;
       }
       this.selectedParentPermission = '';
-      const {data : res} = await this.$http.get('/sysPermission/getPermissionsByLevel/' + (level - 1));
+      const {data : res} = await this.$http.get('/permission', {
+        params: {
+          level: level - 1
+        }
+      });
       if (res.meta.status != 200) {
         return this.$message.error("获取权限失败");
       }
-      this.selectPermissions = res.data;
+      this.selectPermissions = res.data.dataList;
 
     }
     

@@ -12,12 +12,12 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.code" clearable @clear = "getMenusList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getMenusList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="showAddRootDialog">添加菜单</el-button>
+          <el-button type="primary" @click="showAddRootDialog">添加一级菜单</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -35,11 +35,13 @@
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <!-- 添加子菜单按钮 -->
+          <el-tooltip effect="dark" content="添加子菜单" placement="top" :enterable="false">
             <el-button v-if="scope.row.parentId == 0" type="success" icon="el-icon-star-off" size="mini"
             @click="showAddDialog(scope.row)"></el-button>
+          </el-tooltip>
           <!-- 修改按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="mini"
-            @click="showEditDialog(scope.row.id)"></el-button>
+          <el-button type="primary" icon="el-icon-edit" size="mini"
+          @click="showEditDialog(scope.row.id)"></el-button>
           <!-- 删除按钮 -->
           <el-button type="danger" icon="el-icon-delete" size="mini"
           @click="deleteMenuById(scope.row.id)"></el-button>
@@ -92,7 +94,7 @@ export default {
   data() {
 // 验证code的唯一性
     let checkCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysMenu/checkCodeUnique/' + value);
+      const {data : res} = await this.$http.get('/menu/check/' + value);
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
@@ -107,7 +109,8 @@ export default {
     return {
       menusList: [],
       queryInfo: {
-        code: ''
+        code: '',
+        name: ''
         // pageNum: 1,
         // pageSize: 10
       },
@@ -170,7 +173,7 @@ export default {
       this.getMenusList();
     },
     async getMenusList() {
-      const {data : res} = await this.$http.get('/sysMenu/getMenusList', {
+      const {data : res} = await this.$http.get('/menu', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
@@ -188,7 +191,7 @@ export default {
     },
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/sysMenu/getMenuById/' + id);
+      const {data : res} = await this.$http.get('/menu/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('获取用户信息失败');
       }
@@ -211,7 +214,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/sysMenu/create', this.addForm);
+        const {data : res} = await this.$http.post('/menu', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加菜单失败");
         }
@@ -227,7 +230,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysMenu/update', this.editForm);
+        const {data : res} = await this.$http.put('/menu', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新菜单失败");
         }
@@ -252,7 +255,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysMenu/logicDeleteById/' + id);
+      const {data : res} = await this.$http.delete('/menu/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }

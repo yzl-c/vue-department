@@ -66,7 +66,7 @@ export default {
     },
     // 获取所有的菜单
     async getMenuList() {
-      const { data: res } = await this.$http.get('/sysMenu/getAllMenus');
+      const { data: res } = await this.$http.get('/menu/all');
       if (res.meta.status !== 200) {
         return this.$message.error(res.meta.msg);
       }

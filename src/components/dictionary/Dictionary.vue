@@ -12,7 +12,7 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.code" clearable @clear = "getDictypesList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getDictypesList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
@@ -143,12 +143,16 @@ export default {
   data() {
 // 验证code的唯一性
     let checkTypeCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysDictype/checkCodeUnique/' + value);
+      const {data : res} = await this.$http.get('/dictype', {
+        params: {
+          code: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -156,12 +160,16 @@ export default {
     }
 // 验证code的唯一性
     let checkDictionaryCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/sysDictionary/checkCodeUnique/' + value);
+      const {data : res} = await this.$http.get('/dictionary', {
+        params: {
+          code: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -172,6 +180,7 @@ export default {
       dictypesList: [],
       queryInfo: {
         code: '',
+        name: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -259,7 +268,7 @@ export default {
       this.getDictypesList();
     },
     async getDictypesList() {
-      const {data : res} = await this.$http.get('/sysDictype/getDictypesList', {
+      const {data : res} = await this.$http.get('/dictype', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
@@ -314,7 +323,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/sysDictype/create', this.addForm);
+        const {data : res} = await this.$http.post('/dictype', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加字典类型失败");
         }
@@ -330,7 +339,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/sysDictionary/create', this.addForm);
+        const {data : res} = await this.$http.post('/dictionary', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加字典失败");
         }
@@ -351,7 +360,7 @@ export default {
     },
     // 展示类型编辑对话框
     async showTypeEditDialog(dictype) {
-      const {data : res} = await this.$http.get('/sysDictype/getDictypeById/' + dictype.id);
+      const {data : res} = await this.$http.get('/dictype/' + dictype.id);
       if (res.meta.status != 200) {
         return this.$message.error('获取字典类型信息失败');
       }
@@ -360,7 +369,7 @@ export default {
     },
     // 展示字典编辑对话框
     async showDictionaryEditDialog(dictionary) {
-      const {data : res} = await this.$http.get('/sysDictionary/getDictionaryById/' + dictionary.id);
+      const {data : res} = await this.$http.get('/dictionary/' + dictionary.id);
       if (res.meta.status != 200) {
         return this.$message.error('获取字典信息失败');
       }
@@ -374,7 +383,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysDictype/update', this.editForm);
+        const {data : res} = await this.$http.put('/dictype', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新字典类型失败");
         }
@@ -389,7 +398,7 @@ export default {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/sysDictionary/update', this.editForm);
+        const {data : res} = await this.$http.put('/dictionary', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新字典失败");
         }
@@ -424,7 +433,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysDictype/logicDeleteById/' + dictype.id);
+      const {data : res} = await this.$http.delete('/dictype/' + dictype.id);
       if (res.meta.status != 200) {
         return this.$message.error('删除类型失败');
       }
@@ -447,7 +456,7 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/sysDictionary/logicDeleteById/' + dictionary.id);
+      const {data : res} = await this.$http.delete('/dictionary/' + dictionary.id);
       if (res.meta.status != 200) {
         return this.$message.error('删除字典失败');
       }
