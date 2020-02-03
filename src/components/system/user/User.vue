@@ -17,7 +17,7 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="dialogVisible = true">添加用户</el-button>
+          <el-button type="primary" @click="showAddDialog">添加用户</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -28,6 +28,7 @@
       <el-table-column label="账号" prop="account"></el-table-column>
       <el-table-column label="姓名" prop="name"></el-table-column>
       <el-table-column label="角色" prop="role.name"></el-table-column>
+      <el-table-column label="部门" prop="deptName"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <!-- 修改按钮 -->
@@ -69,6 +70,13 @@
         <el-form-item label="密码" prop="password">
           <el-input v-model="addForm.password"></el-input>
         </el-form-item>
+        <el-form-item label="部门">
+          <el-select v-model="selectedDeptId" placeholder="请选择">
+            <el-option v-for="item in deptsList" :key="item.id"
+              :label="item.name" :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
@@ -90,6 +98,13 @@
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input v-model="editForm.password"></el-input>
+        </el-form-item>
+        <el-form-item label="部门">
+          <el-select v-model="selectedDeptId" placeholder="请选择">
+            <el-option v-for="item in deptsList" :key="item.id"
+              :label="item.name" :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <!-- 底部 -->
@@ -145,6 +160,7 @@ export default {
       queryInfo: {
         account: '',
         name: '',
+        deptId: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -159,13 +175,18 @@ export default {
       // 将要配置角色的用户信息
       userInfo: {},
       // 所有角色列表
-      rolesList: [1,2],
+      rolesList: [],
       // 分配角色时已选中的角色id值
       selectedRoleId: '',
+      // 所有部门列表
+      deptsList: [],
+      // 选中的部门id
+      selectedDeptId: '',
       // 添加表单数据
       addForm: {
         account: '',
         name: '',
+        deptId: '',
         password: ''
       },
       // 编辑用户信息数据
@@ -176,8 +197,8 @@ export default {
           { required: true, message: '请输入账号', trigger: 'blur' },
           {
             min: 5,
-            max: 10,
-            message: '账号的长度在5~10个字符之间',
+            max: 20,
+            message: '账号的长度在5~20个字符之间',
             trigger: 'blur'
           },
           { validator: checkAccount, trigger: 'blur' }
@@ -185,9 +206,9 @@ export default {
         name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           {
-            min: 3,
-            max: 10,
-            message: '用户名的长度在3~10个字符之间',
+            min: 2,
+            max: 20,
+            message: '用户名的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ],
@@ -195,8 +216,8 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           {
             min: 5,
-            max: 15,
-            message: '密码的长度在5~15个字符之间',
+            max: 20,
+            message: '密码的长度在5~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -205,9 +226,9 @@ export default {
         name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           {
-            min: 3,
-            max: 10,
-            message: '用户名的长度在3~10个字符之间',
+            min: 2,
+            max: 20,
+            message: '用户名的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ],
@@ -215,8 +236,8 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           {
             min: 5,
-            max: 15,
-            message: '密码的长度在5~15个字符之间',
+            max: 20,
+            message: '密码的长度在5~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -252,13 +273,40 @@ export default {
       this.queryInfo.pageNum = newPage;
       this.getUsersList();
     },
+    // 展示新增对话框
+    async showAddDialog() {
+      const {data : res} = await this.$http.get('/department');
+      if (res.meta.status != 200) {
+        return this.$message.error('获取部门信息失败');
+      }
+      this.deptsList = res.data.dataList;
+      this.dialogVisible = true;
+    },
+    // 展示编辑对话框
+    async showEditDialog(id) {
+      const {data : dept} = await this.$http.get('/department');
+      if (dept.meta.status != 200) {
+        return this.$message.error('获取部门信息失败');
+      }
+      this.deptsList = dept.data.dataList;
+
+      const {data : res} = await this.$http.get('/user/' + id);
+      if (res.meta.status != 200) {
+        return this.$message.error('获取用户信息失败');
+      }
+      this.editForm = res.data;
+      this.selectedDeptId = res.data.deptId;
+      this.editDialogVisible = true;
+    },
     // 添加用户对话框关闭时执行的操作
     addDialogClosed() {
       this.$refs.addFormRef.resetFields();
+      this.selectedDeptId = '';
     },
     // 编辑用户对话框关闭时执行的操作
     editDialogClosed() {
       this.$refs.editFormRef.resetFields();
+      this.selectedDeptId = '';
     },
     // 添加用户提交
     addUser() {
@@ -267,6 +315,7 @@ export default {
         if (!valid) {
           return;
         }
+        this.addForm.deptId = this.selectedDeptId;
         const {data : res} = await this.$http.post('/user', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加用户失败");
@@ -276,15 +325,6 @@ export default {
         this.$message.success("添加用户成功");
       });
     },
-    // 展示编辑对话框
-    async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/user/' + id);
-      if (res.meta.status != 200) {
-        return this.$message.error('获取用户信息失败');
-      }
-      this.editForm = res.data;
-      this.editDialogVisible = true;
-    },
     // 编辑用户提交
     editUser() {
       // 预校验
@@ -292,6 +332,7 @@ export default {
         if (!valid) {
           return;
         }
+        this.editForm.deptId = this.selectedDeptId;
         const {data : res} = await this.$http.put('/user', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新用户失败");

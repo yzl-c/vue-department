@@ -3,8 +3,8 @@
 <!-- 导航 -->
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>菜单管理</el-breadcrumb-item>
-      <el-breadcrumb-item>菜单列表</el-breadcrumb-item>
+      <el-breadcrumb-item>部门管理</el-breadcrumb-item>
+      <el-breadcrumb-item>部门列表</el-breadcrumb-item>
     </el-breadcrumb>
 
 <!-- 内容主体 -->
@@ -12,45 +12,45 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getMenusList">
+          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getDepartmentsList">
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="showAddRootDialog">添加一级菜单</el-button>
+          <el-button type="primary" @click="addDialogVisible = true">添加部门</el-button>
         </el-col>
       </el-row>
     </el-card>
 
-    <el-table :data="menusList" border stripe row-key="code" align="center"
-    :tree-props="{children: 'subMenus'}" default-expand-all>
+    <el-table :data="departmentsList" border stripe row-key="code" align="center">
       <el-table-column align="center" type="index"></el-table-column>
-      <el-table-column align="center" label="菜单等级">
-        <template slot-scope="scope">
-          <el-tag type="success">{{scope.row.level + 1}}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="菜单编码" prop="code"></el-table-column>
-      <el-table-column align="center" label="菜单名称" prop="name"></el-table-column>
+      <el-table-column align="center" label="部门编码" prop="code"></el-table-column>
+      <el-table-column align="center" label="部门名称" prop="name"></el-table-column>
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
-          <!-- 添加子菜单按钮 -->
-          <el-tooltip effect="dark" content="添加子菜单" placement="top" :enterable="false">
-            <el-button v-if="scope.row.parentId == 0" type="success" icon="el-icon-star-off" size="mini"
-            @click="showAddDialog(scope.row)"></el-button>
-          </el-tooltip>
           <!-- 修改按钮 -->
           <el-button type="primary" icon="el-icon-edit" size="mini"
           @click="showEditDialog(scope.row.id)"></el-button>
           <!-- 删除按钮 -->
           <el-button type="danger" icon="el-icon-delete" size="mini"
-          @click="deleteMenuById(scope.row.id)"></el-button>
+          @click="deleteDepartmentById(scope.row.id)"></el-button>
         </template>
       </el-table-column>
     </el-table>
 
+<!-- 分页栏 -->
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="queryInfo.pageNum"
+      :page-sizes="[10, 20, 50, 100]"
+      :page-size="queryInfo.pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
+
 <!-- 添加菜单弹出框 -->
-    <el-dialog title="添加菜单" :visible.sync="dialogVisible" width="40%" 
+    <el-dialog title="添加菜单" :visible.sync="addDialogVisible" width="40%" 
     @close="addDialogClosed">
       <!-- 内容 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px" class="demo-ruleForm">
@@ -63,8 +63,8 @@
       </el-form>
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addMenu">确 定</el-button>
+        <el-button @click="addDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addDepartment">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -83,7 +83,7 @@
       <!-- 底部 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editMenu">确 定</el-button>
+        <el-button type="primary" @click="editDepartment">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -92,14 +92,18 @@
 <script>
 export default {
   data() {
-// 验证code的唯一性
+    // 验证code的唯一性
     let checkCode = async (rule, value, cb) => {
-      const {data : res} = await this.$http.get('/menu/check/' + value);
+      const {data : res} = await this.$http.get('/department', {
+        params: {
+          code: value
+        }
+      });
 
       if (res.meta.status != 200) {
         return cb(new Error('请求校验失败'));
       }
-      if (res.data.length == 0) {
+      if (res.data.dataList.length == 0) {
         return cb();
       }
 
@@ -107,22 +111,20 @@ export default {
     }
 
     return {
-      menusList: [],
+      departmentsList: [],
       queryInfo: {
         code: '',
-        name: ''
-        // pageNum: 1,
-        // pageSize: 10
+        name: '',
+        pageNum: 1,
+        pageSize: 10
       },
-      // total: 0,
-      // 添加菜单对话框显示状态
-      dialogVisible: false,
-      // 编辑菜单对话框显示状态
+      total: 0,
+      // 添加部门对话框显示状态
+      addDialogVisible: false,
+      // 编辑部门对话框显示状态
       editDialogVisible: false,
       // 添加表单数据
       addForm: {
-        parentId: 0,
-        level: 0,
         code: '',
         name: '',
       },
@@ -134,8 +136,8 @@ export default {
           { required: true, message: '请输入编码', trigger: 'blur' },
           {
             min: 3,
-            max: 15,
-            message: '编码的长度在3~15个字符之间',
+            max: 30,
+            message: '编码的长度在3~30个字符之间',
             trigger: 'blur'
           },
           { validator: checkCode, trigger: 'blur' }
@@ -144,8 +146,8 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '名称的长度在3~10个字符之间',
+            max: 20,
+            message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -155,8 +157,8 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '名称的长度在3~10个字符之间',
+            max: 20,
+            message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -164,22 +166,33 @@ export default {
     }
   },
   created() {
-    this.getMenusList();
+    this.getDepartmentsList();
   },
   methods: {
     // 搜索
     search() {
-      // this.queryInfo.pageNum = 1;
-      this.getMenusList();
+      this.queryInfo.pageNum = 1;
+      this.getDepartmentsList();
     },
-    async getMenusList() {
-      const {data : res} = await this.$http.get('/menu', {
+    async getDepartmentsList() {
+      const {data : res} = await this.$http.get('/department', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
-        return this.$message.error('获取菜单列表失败');
+        return this.$message.error('获取部门列表失败');
       }
-      this.menusList = res.data;
+      this.departmentsList = res.data.dataList;
+      this.total = res.data.total
+    },
+    // 监听 pagesize 改变的事件
+    handleSizeChange(newSize) {
+      this.queryInfo.pageSize = newSize;
+      this.getDepartmentsList();
+    },
+    // 监听 页码值 改变的事件
+    handleCurrentChange(newPage) {
+      this.queryInfo.pageNum = newPage;
+      this.getDepartmentsList();
     },
     // 添加用户对话框关闭时执行的操作
     addDialogClosed() {
@@ -191,58 +204,48 @@ export default {
     },
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/menu/' + id);
+      const {data : res} = await this.$http.get('/department/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('获取用户信息失败');
       }
       this.editForm = res.data;
       this.editDialogVisible = true;
     },
-    // 添加根菜单
-    showAddRootDialog() {
-      this.dialogVisible = true;
-    },
-    // 添加子菜单
-    showAddDialog(menu) {
-      this.addForm.parentId = menu.id;
-      this.addForm.level = menu.level + 1;
-      this.dialogVisible = true;
-    },
-    addMenu() {
+    addDepartment() {
       // 预校验
       this.$refs.addFormRef.validate(async valid => {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.post('/menu', this.addForm);
+        const {data : res} = await this.$http.post('/department', this.addForm);
         if (res.meta.status != 200) {
-          return this.$message.error("添加菜单失败");
+          return this.$message.error("添加部门失败");
         }
-        this.dialogVisible = false;
-        this.getMenusList();
-        this.$message.success("添加菜单成功");
+        this.addDialogVisible = false;
+        this.getDepartmentsList();
+        this.$message.success("添加部门成功");
       });
     },
     // 编辑用户提交
-    editMenu() {
+    editDepartment() {
       // 预校验
       this.$refs.editFormRef.validate(async valid => {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/menu', this.editForm);
+        const {data : res} = await this.$http.put('/department', this.editForm);
         if (res.meta.status != 200) {
-          return this.$message.error("更新菜单失败");
+          return this.$message.error("更新部门失败");
         }
         this.editDialogVisible = false;
-        this.getMenusList();
-        this.$message.success("更新菜单成功");
+        this.getDepartmentsList();
+        this.$message.success("更新部门成功");
       });
     },
-    // 删除菜单
-    async deleteMenuById(id) {
+    // 删除部门
+    async deleteDepartmentById(id) {
       const confirmSelect = await this.$confirm(
-        '此操作将删除该菜单，是否继续？',
+        '此操作将删除该部门，是否继续？',
         '提示',
         {
           confirmButtonText: '确定',
@@ -255,13 +258,12 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('/menu/' + id);
+      const {data : res} = await this.$http.delete('department/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
       this.$message.success('删除成功');
-      this.getMenusList();
-
+      this.getDepartmentsList();
     }
   }
 }

@@ -3,11 +3,13 @@ import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import Welcome from '../components/Welcome.vue'
-import User from '../components/user/User.vue'
-import Permission from '../components/permission/Permission.vue'
-import Role from '../components/role/Role.vue'
-import Dictionary from '../components/dictionary/Dictionary.vue'
-import Menu from '../components/menu/Menu.vue'
+import User from '../components/system/user/User.vue'
+import Permission from '../components/system/permission/Permission.vue'
+import Role from '../components/system/role/Role.vue'
+import Dictionary from '../components/system/dictionary/Dictionary.vue'
+import Menu from '../components/system/menu/Menu.vue'
+import Department from '../components/system/department/Department.vue'
+import Apply_Holiday from '../components/working/apply/Apply_Holiday.vue'
 
 Vue.use(VueRouter)
 
@@ -48,6 +50,14 @@ const routes = [
       {
         path: '/menu_list',
         component: Menu
+      },
+      {
+        path: '/department_list',
+        component: Department
+      },
+      {
+        path: '/apply_holiday_list',
+        component: Apply_Holiday
       }
     ]
   }

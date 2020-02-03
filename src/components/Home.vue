@@ -26,16 +26,23 @@
               <!-- 一级菜单文本 -->
               <span>{{item.name}}</span>
             </template>
+
             <!-- 二级菜单 -->
-            <el-menu-item :index="'/' + subItem.code" v-for="subItem in item.subMenus" :key="subItem.id"
-            >
+            <el-submenu :index="'/' + subItem1.code" v-for="subItem1 in item.subMenus" :key="subItem1.id">
               <template slot="title">
                 <!-- 菜单图标 -->
                 <i class="el-icon-menu"></i>
                 <!-- 菜单文本 -->
-                <span>{{subItem.name}}</span>
+                <span>{{subItem1.name}}</span>
               </template>
-            </el-menu-item>
+              <el-menu-item :index=" '/' + subItem2.code + ''" v-for="subItem2 in subItem1.subMenus" :key="subItem2.id">
+                <!-- 三级菜单 -->
+                <template slot="title">
+                  <i class="el-icon-s-tools"></i>
+                  <span>{{subItem2.name}}</span>
+                </template>
+              </el-menu-item>
+            </el-submenu>
           </el-submenu>
         </el-menu>  
       </el-aside>

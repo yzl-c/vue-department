@@ -183,8 +183,8 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '名称的长度在3~10个字符之间',
+            max: 20,
+            message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -194,8 +194,8 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '名称的长度在3~10个字符之间',
+            max: 20,
+            message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]

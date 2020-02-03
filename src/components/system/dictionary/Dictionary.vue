@@ -207,8 +207,8 @@ export default {
           { required: true, message: '请输入编码', trigger: 'blur' },
           {
             min: 3,
-            max: 20,
-            message: '编码的长度在3~20个字符之间',
+            max: 30,
+            message: '编码的长度在3~30个字符之间',
             trigger: 'blur'
           },
           { validator: checkTypeCode, trigger: 'blur' }
@@ -217,8 +217,8 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '名称的长度在3~10个字符之间',
+            max: 20,
+            message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -228,9 +228,9 @@ export default {
         code: [
           { required: true, message: '请输入编码', trigger: 'blur' },
           {
-            min: 3,
+            min: 1,
             max: 20,
-            message: '编码的长度在3~20个字符之间',
+            message: '编码的长度在1~20个字符之间',
             trigger: 'blur'
           },
           { validator: checkDictionaryCode, trigger: 'blur' }
@@ -238,9 +238,9 @@ export default {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
-            min: 3,
+            min: 1,
             max: 10,
-            message: '名称的长度在3~10个字符之间',
+            message: '名称的长度在1~10个字符之间',
             trigger: 'blur'
           }
         ]
@@ -249,9 +249,9 @@ export default {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' },
           {
-            min: 3,
+            min: 1,
             max: 20,
-            message: '名称的长度在3~20个字符之间',
+            message: '名称的长度在1~20个字符之间',
             trigger: 'blur'
           }
         ]

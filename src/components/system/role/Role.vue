@@ -197,9 +197,9 @@ export default {
         code: [
           { required: true, message: '请输入角色编码', trigger: 'blur' },
           {
-            min: 4,
-            max: 10,
-            message: '账号的长度在4~10个字符之间',
+            min: 3,
+            max: 30,
+            message: '账号的长度在3~30个字符之间',
             trigger: 'blur'
           },
           { validator: checkCode, trigger: 'blur' }
@@ -208,8 +208,8 @@ export default {
           { required: true, message: '请输入角色名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '角色名称的长度在3~10个字符之间',
+            max: 20,
+            message: '角色名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
@@ -219,8 +219,8 @@ export default {
           { required: true, message: '请输入角色名称', trigger: 'blur' },
           {
             min: 3,
-            max: 10,
-            message: '角色名称的长度在3~10个字符之间',
+            max: 20,
+            message: '角色名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
         ]
