@@ -8,6 +8,12 @@ import './assets/fonts/iconfont.css'
 import './assets/css/global.css'
 // 导入axios
 import axios from 'axios'
+import Moment from 'moment'
+
+Vue.filter('formatDate', function(value) {
+  return Moment(value).format('YYYY-MM-DD HH:mm:ss')
+})
+
 // 配置请求根路径
 // axios.defaults.baseURL = 'http://47.107.124.163:8081'
 axios.defaults.baseURL = 'http://127.0.0.1:8081'

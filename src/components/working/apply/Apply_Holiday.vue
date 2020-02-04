@@ -18,18 +18,32 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="addDialogVisible = true">新建申请</el-button>
+          <el-button type="primary" @click="showAddDialog">新建申请</el-button>
         </el-col>
       </el-row>
     </el-card>
 
     <el-table :data="applysList" border stripe>
       <el-table-column type="index"></el-table-column>
-      <el-table-column label="申请人" prop="createUserAccount"></el-table-column>
-      <el-table-column label="申请时间" prop="createTime"></el-table-column>
+      <el-table-column label="申请人" prop="createUserName"></el-table-column>
+      <el-table-column label="申请时间" prop="createTime">
+        <template slot-scope="scope">
+          {{scope.row.createTime | formatDate}}
+        </template>
+      </el-table-column>
       <el-table-column label="请假类型" prop="typeName"></el-table-column>
-      <el-table-column label="开始日期" prop="beginDate"></el-table-column>
-      <el-table-column label="结束日期" prop="endDate"></el-table-column>
+      <el-table-column label="开始日期" prop="beginDate">
+        <template slot-scope="scope">
+          {{scope.row.beginDate | formatDate}}
+        </template>
+      </el-table-column>
+      <el-table-column label="结束日期" prop="endDate">
+        <template slot-scope="scope">
+          {{scope.row.endDate | formatDate}}
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" prop="statusName"></el-table-column>
+      <el-table-column label="结果" prop="resultName"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <!-- 修改按钮 -->
@@ -58,11 +72,24 @@
     @close="addDialogClosed">
       <!-- 内容 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px" class="demo-ruleForm">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="addForm.code"></el-input>
+        <el-form-item label="申请人" >
+          <el-input v-model="addForm.createUserName" disabled=""></el-input>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="addForm.name"></el-input>
+        <el-form-item label="类型">
+          <el-select v-model="selectedType" placeholder="请选择">
+            <el-option v-for="item in holidayTypesList" :key="item.id"
+              :label="item.name" :value="item.code">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="开始日期" prop="beginDate" label-width="90px">
+          <el-date-picker v-model="addForm.beginDate" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="结束日期" prop="endDate" label-width="90px">
+          <el-date-picker v-model="addForm.endDate" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="申请原因" prop="content"  label-width="90px">
+          <el-input type="textarea" :rows="3" placeholder="请输入内容" v-model="addForm.content"></el-input>
         </el-form-item>
       </el-form>
       <!-- 底部 -->
@@ -77,11 +104,24 @@
     @close="editDialogClosed">
       <!-- 内容 -->
       <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px" class="demo-ruleForm">
-        <el-form-item label="编码">
-          <el-input v-model="editForm.code" disabled=""></el-input>
+        <el-form-item label="申请人" >
+          <el-input v-model="editForm.createUserName" disabled=""></el-input>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="editForm.name"></el-input>
+        <el-form-item label="类型" prop="type">
+          <el-select v-model="selectedType" placeholder="请选择">
+            <el-option v-for="item in holidayTypesList" :key="item.id"
+              :label="item.name" :value="item.code">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="开始日期" prop="beginDate" label-width="90px">
+          <el-date-picker v-model="editForm.beginDate" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="结束日期" prop="endDate" label-width="90px">
+          <el-date-picker v-model="editForm.endDate" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="申请原因" prop="content"  label-width="90px">
+          <el-input type="textarea" :rows="3" placeholder="请输入内容" v-model="editForm.content"></el-input>
         </el-form-item>
       </el-form>
       <!-- 底部 -->
@@ -98,6 +138,8 @@ export default {
   data() {
     return {
       applysList: [],
+      holidayTypesList: [],
+      selectedType: '',
       queryInfo: {
         pageNum: 1,
         pageSize: 10
@@ -109,41 +151,44 @@ export default {
       editDialogVisible: false,
       // 添加表单数据
       addForm: {
-        code: '',
-        name: ''
+        type: '',
+        status: 0,
+        createUser: '',
+        createUserCode: '',
+        createUserName: '',
+        content: '',
+        beginDate: '',
+        endDate: ''
       },
       // 编辑表单数据
       editForm: {},
       // 添加表单验证规则
       addFormRules: {
-        code: [
-          { required: true, message: '请输入编码', trigger: 'blur' },
-          {
-            min: 3,
-            max: 30,
-            message: '编码的长度在3~30个字符之间',
-            trigger: 'blur'
-          }
+        type: [
+          { required: true, message: '请选择类型', trigger: 'blur' }
         ],
-        name: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          {
-            min: 3,
-            max: 20,
-            message: '名称的长度在3~20个字符之间',
-            trigger: 'blur'
-          }
+        beginDate: [
+          { required: true, message: '请选择开始日期', trigger: 'blur' }
+        ],
+        endDate: [
+          { required: true, message: '请选择结束日期', trigger: 'blur' }
+        ],
+        content: [
+          { required: true, message: '请填写原因', trigger: 'blur' }
         ]
       },
       editFormRules: {
-        name: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          {
-            min: 3,
-            max: 20,
-            message: '名称的长度在3~20个字符之间',
-            trigger: 'blur'
-          }
+        type: [
+          { required: true, message: '请选择类型', trigger: 'blur' }
+        ],
+        beginDate: [
+          { required: true, message: '请选择开始日期', trigger: 'blur' }
+        ],
+        endDate: [
+          { required: true, message: '请选择结束日期', trigger: 'blur' }
+        ],
+        content: [
+          { required: true, message: '请填写原因', trigger: 'blur' }
         ]
       }
     }
@@ -158,7 +203,7 @@ export default {
       this.getApplysList();
     },
     async getApplysList() {
-      const {data : res} = await this.$http.get('/holiday', {
+      const {data : res} = await this.$http.get('/holidayApply', {
         params: this.queryInfo
       });
       if (res.meta.status != 200) {
@@ -177,23 +222,53 @@ export default {
       this.queryInfo.pageNum = newPage;
       this.getApplysList();
     },
-    // 添加用户对话框关闭时执行的操作
+    // 添加申请对话框关闭时执行的操作
     addDialogClosed() {
       this.$refs.addFormRef.resetFields();
-      this.selectedLevel = '';
-      this.selectedParentApply = '';
+      this.selectedType = '';
     },
-    // 编辑用户对话框关闭时执行的操作
+    // 编辑申请对话框关闭时执行的操作
     editDialogClosed() {
       this.$refs.editFormRef.resetFields();
+      this.selectedType = '';
+    },
+    // 展示新增对话框
+    async showAddDialog() {
+      const {data : res} = await this.$http.get('/dictype', {
+        params: {
+          code: 'holiday_type'
+        }
+      });
+      if (res.meta.status != 200) {
+        return this.$message.error('获取请假类型信息失败');
+      }
+      if (res.data.dataList.length > 0) {
+        this.holidayTypesList = res.data.dataList[0].dictionarys;
+      }
+      this.addForm.createUserName = window.sessionStorage.getItem("loginUserName");
+      this.addDialogVisible = true;
     },
     // 展示编辑对话框
     async showEditDialog(id) {
-      const {data : res} = await this.$http.get('/holiday/' + id);
+      const {data : dictypes} = await this.$http.get('/dictype', {
+        params: {
+          code: 'holiday_type'
+        }
+      });
+      if (dictypes.meta.status != 200) {
+        return this.$message.error('获取请假类型信息失败');
+      }
+      if (dictypes.data.dataList.length > 0) {
+        this.holidayTypesList = dictypes.data.dataList[0].dictionarys;
+      }
+
+      const {data : res} = await this.$http.get('/holidayApply/' + id);
       if (res.meta.status != 200) {
-        return this.$message.error('获取用户信息失败');
+        return this.$message.error('获取申请信息失败');
       }
       this.editForm = res.data;
+      this.selectedType = this.editForm.type;
+
       this.editDialogVisible = true;
     },
     addApply() {
@@ -202,31 +277,29 @@ export default {
         if (!valid) {
           return;
         }
-        console.log(this.selectedParentApply)
-        if (!this.selectedParentApply && this.selectedParentApply != 0) {
-          return this.$message.warning('请选择父申请');
+        if (!this.selectedType) {
+          return this.$message.info("请选择请假类型");
         }
-        this.addForm.parentId = this.selectedParentApply;
-        this.addForm.level = this.selectedLevel;
-        const {data : res} = await this.$http.post('/holiday', this.addForm);
+        this.addForm.createUser = window.sessionStorage.getItem("loginUserId");
+        this.addForm.type = this.selectedType;
+        const {data : res} = await this.$http.post('/holidayApply', this.addForm);
         if (res.meta.status != 200) {
           return this.$message.error("添加申请失败");
         }
         this.addDialogVisible = false;
-        this.selectedLevel = '';
-        this.selectedParentApply = '';
         this.getApplysList();
         this.$message.success("添加申请成功");
       });
     },
-    // 编辑用户提交
+    // 编辑申请提交
     editApply() {
       // 预校验
       this.$refs.editFormRef.validate(async valid => {
         if (!valid) {
           return;
         }
-        const {data : res} = await this.$http.put('/holiday', this.editForm);
+        this.editForm.type = this.selectedType;
+        const {data : res} = await this.$http.put('/holidayApply', this.editForm);
         if (res.meta.status != 200) {
           return this.$message.error("更新申请失败");
         }
@@ -251,33 +324,12 @@ export default {
         return this.$message.info('取消删除操作');
       }
 
-      const {data : res} = await this.$http.delete('apply/' + id);
+      const {data : res} = await this.$http.delete('/holidayApply/' + id);
       if (res.meta.status != 200) {
         return this.$message.error('删除失败');
       }
       this.$message.success('删除成功');
       this.getApplysList();
-    },
-    // 新增申请时申请等级改变事件
-    async changeLevel(level) {
-      if (level == 1) {
-        this.selectApplys = [{
-          id: 0,
-          name: '根申请'
-        }];
-        this.selectedParentApply = '';
-        return;
-      }
-      this.selectedParentApply = '';
-      const {data : res} = await this.$http.get('/holiday', {
-        params: {
-          level: level - 1
-        }
-      });
-      if (res.meta.status != 200) {
-        return this.$message.error("获取申请失败");
-      }
-      this.selectApplys = res.data.dataList;
     }
 
   }

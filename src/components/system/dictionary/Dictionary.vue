@@ -13,6 +13,7 @@
       <el-row :gutter="20">
         <el-col :span="8">
           <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getDictypesList">
+            <template slot="prepend">类型名称：</template>
             <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
           </el-input>
         </el-col>
@@ -23,7 +24,7 @@
     </el-card>
 
 <!-- 内容列表 -->
-    <el-table :data="dictypesList" border stripe row-key="code"
+    <el-table :data="dictypesList" border stripe row-key="id"
     :tree-props="{children: 'dictionarys'}">
       <el-table-column label="类别/字典">
         <template slot-scope="scope1">
@@ -162,7 +163,8 @@ export default {
     let checkDictionaryCode = async (rule, value, cb) => {
       const {data : res} = await this.$http.get('/dictionary', {
         params: {
-          code: value
+          code: value,
+          typeCode: this.addForm.typeCode
         }
       });
 
@@ -195,7 +197,7 @@ export default {
       editDictionaryDialogVisible: false,
       // 添加表单数据
       addForm: {
-        typeId: '',
+        typeCode: '',
         code: '',
         name: ''
       },
@@ -307,7 +309,7 @@ export default {
 
     // 展示添加字典弹出框
     showAddDictionaryDialog(dictype) {
-      this.addForm.typeId = dictype.id;
+      this.addForm.typeCode = dictype.code;
       this.addDictionaryDialogVisible = true;
     },
 
