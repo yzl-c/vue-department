@@ -75,7 +75,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="父权限" prop="parentLevel">
+        <el-form-item label="父权限">
           <el-select v-model="selectedParentPermission" placeholder="请选择">
             <el-option v-for="item in selectPermissions" :key="item.id"
               :label="item.name" :value="item.id">
@@ -188,9 +188,6 @@ export default {
             message: '名称的长度在3~20个字符之间',
             trigger: 'blur'
           }
-        ],
-        parentLevel: [
-          { required: true, message: '请选择父权限', trigger: 'blur' },
         ]
       },
       editFormRules: {
@@ -259,6 +256,9 @@ export default {
       this.$refs.addFormRef.validate(async valid => {
         if (!valid) {
           return;
+        }
+        if (!this.selectedParentPermission && this.selectedParentPermission != 0) {
+          return this.$message.info("请选择父权限");
         }
         this.addForm.parentId = this.selectedParentPermission;
         this.addForm.level = this.selectedLevel;

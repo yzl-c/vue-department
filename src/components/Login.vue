@@ -70,6 +70,9 @@ export default {
         window.sessionStorage.setItem('loginUserId', res.data.loginUser.id);
         window.sessionStorage.setItem('loginUserAccount', res.data.loginUser.account);
         window.sessionStorage.setItem('loginUserName', res.data.loginUser.name);
+        window.sessionStorage.setItem('loginDepartmentId', res.data.loginUser.deptId);
+        window.sessionStorage.setItem('loginDepartmentCode', res.data.loginUser.deptCode);
+        window.sessionStorage.setItem('loginDepartmentName', res.data.loginUser.deptName);
         // 2. 通过编程式导航跳转到后台主页，路由地址是 /home
         this.$router.push('/home');
       })

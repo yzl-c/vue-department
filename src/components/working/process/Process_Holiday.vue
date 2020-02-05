@@ -13,9 +13,10 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getProcesssList">
-            <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
-          </el-input>
+          <!-- <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getProcesssList"> -->
+            <!-- <el-button slot="append" icon="el-icon-search" @click="search"></el-button> -->
+          <!-- </el-input> -->
+          <el-button icon="el-icon-search" circle @click="search"></el-button>
         </el-col>
       </el-row>
     </el-card>

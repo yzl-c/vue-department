@@ -13,9 +13,10 @@
       <!-- 搜索区域 -->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getApplysList">
-            <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
-          </el-input>
+          <!-- <el-input placeholder="请输入内容" v-model="queryInfo.name" clearable @clear = "getApplysList"> -->
+            <!-- <el-button slot="append" icon="el-icon-search" @click="search"></el-button> -->
+          <!-- </el-input> -->
+          <el-button icon="el-icon-search" circle @click="search"></el-button>
         </el-col>
         <el-col :span="4">
           <el-button type="primary" @click="showAddDialog">新建申请</el-button>
@@ -47,11 +48,15 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <!-- 修改按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="mini"
-            @click="showEditDialog(scope.row.id)"></el-button>
+          <el-button v-if="scope.row.status != 1" type="primary" icon="el-icon-edit" size="mini"
+          @click="showEditDialog(scope.row.id)"></el-button>
+          <el-button v-if="scope.row.status == 1" type="primary" icon="el-icon-edit" size="mini" disabled=""></el-button>
+
           <!-- 删除按钮 -->
-          <el-button type="danger" icon="el-icon-delete" size="mini"
+          <!-- <el-button v-if="scope.row.status != 1" type="danger" icon="el-icon-delete" size="mini"
           @click="deleteById(scope.row.id)"></el-button>
+          <el-button v-if="scope.row.status == 1" type="danger" icon="el-icon-delete" size="mini" disabled=""></el-button> -->
+
         </template>
       </el-table-column>
     </el-table>
@@ -309,28 +314,28 @@ export default {
       });
     },
     // 删除申请
-    async deleteById(id) {
-      const confirmSelect = await this.$confirm(
-        '此操作将删除该申请，是否继续？',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).catch(error => error);
+    // async deleteById(id) {
+    //   const confirmSelect = await this.$confirm(
+    //     '此操作将删除该申请，是否继续？',
+    //     '提示',
+    //     {
+    //       confirmButtonText: '确定',
+    //       cancelButtonText: '取消',
+    //       type: 'warning'
+    //     }
+    //   ).catch(error => error);
 
-      if (confirmSelect != 'confirm') {
-        return this.$message.info('取消删除操作');
-      }
+    //   if (confirmSelect != 'confirm') {
+    //     return this.$message.info('取消删除操作');
+    //   }
 
-      const {data : res} = await this.$http.delete('/holidayApply/' + id);
-      if (res.meta.status != 200) {
-        return this.$message.error('删除失败');
-      }
-      this.$message.success('删除成功');
-      this.getApplysList();
-    }
+    //   const {data : res} = await this.$http.delete('/holidayApply/' + id);
+    //   if (res.meta.status != 200) {
+    //     return this.$message.error('删除失败');
+    //   }
+    //   this.$message.success('删除成功');
+    //   this.getApplysList();
+    // }
 
   }
 }

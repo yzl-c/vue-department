@@ -67,7 +67,11 @@ export default {
     this.getMenuList();
   },
   methods: {
-    logout() {
+    async logout() {
+      const { data: res } = await this.$http.post('/logout');
+      if (res.meta.status !== 200) {
+        return this.$message.error(退出失败);
+      }
       window.sessionStorage.clear();
       this.$router.push('/login');
     },
